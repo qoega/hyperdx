@@ -193,8 +193,11 @@ describe('toSavedFilter', () => {
   });
 });
 
-/** The minimum a form needs to save, per filter type. */
-const byType: Record<DashboardFilter['type'], Partial<FilterFormValues>> = {
+/** The minimum a form needs to save, per filter type the form supports. */
+const byType: Record<
+  Exclude<DashboardFilter['type'], 'ADHOC'>,
+  Partial<FilterFormValues>
+> = {
   QUERY_EXPRESSION: {
     type: 'QUERY_EXPRESSION',
     name: 'Service',

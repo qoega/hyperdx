@@ -3,6 +3,8 @@ import * as SQLParser from 'node-sql-parser';
 import { escapeSqlString, replaceJsonExpressions } from '@/core/utils';
 import { parse } from '@/queryParser';
 import {
+  AdhocFilterSourceType,
+  AdhocFilterValue,
   ChartVariable,
   DASHBOARD_VARIABLE_NAME_MAX_LENGTH,
   DASHBOARD_VARIABLE_NAME_PATTERN_ANCHORED,
@@ -876,6 +878,21 @@ export const QUERY_EXPRESSION_FILTER_SOURCE_KINDS: SourceKind[] = [
   SourceKind.Metric,
 ];
 
+/**
+ * The source kinds an ADHOC filter of the given source type can read keys
+ * from. Metric sources need a metric type to pick a table, so they are left out.
+ */
+export function getAdhocFilterSourceKinds(
+  sourceType: AdhocFilterSourceType,
+): SourceKind[] {
+  switch (sourceType) {
+    case 'sql':
+      return [SourceKind.Log, SourceKind.Trace, SourceKind.Session];
+    case 'promql':
+      return [SourceKind.Promql];
+  }
+}
+
 /** Type guard for QUERY_EXPRESSION type filters. */
 export function isQueryExpressionFilter<
   T extends { type: DashboardFilterKind },
@@ -895,6 +912,20 @@ export function isPrometheusLabelFilter<
   T extends { type: DashboardFilterKind },
 >(filter: T): filter is Extract<T, { type: 'PROMETHEUS_LABEL' }> {
   return filter.type === 'PROMETHEUS_LABEL';
+}
+
+/** Type guard for ADHOC type filters. */
+export function isAdhocFilter<T extends { type: DashboardFilterKind }>(
+  filter: T,
+): filter is Extract<T, { type: 'ADHOC' }> {
+  return filter.type === 'ADHOC';
+}
+
+/** Type guard for the saved conditions of an ADHOC filter. */
+export function isAdhocFilterValue(
+  value: DashboardFilterValue,
+): value is AdhocFilterValue {
+  return value.type === 'adhoc';
 }
 
 /** The SQL expression associated with the filter, if any. */
